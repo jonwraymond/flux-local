@@ -5,9 +5,6 @@ inputs:
   path:
     description: Path to the root of the flux cluster GitRepository and Kustomization
     required: true
-  live-branch:
-    description: The name of the live branch to diff against, typically 'main' or 'master'.
-    default: main
   resource:
     description: Type of resource to diff, either 'kustomization' or 'helmrelease'
     required: true
@@ -59,15 +56,6 @@ runs:
         python -m pip install --upgrade pip
         pip install -e ${{ github.action_path }}/../../
       shell: bash
-    - name: Checkout PR branch
-      uses: actions/checkout@v4
-      with:
-        path: pr
-    - name: Checkout live branch
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.live-branch }}
-        path: live
     - name: flux-local diff
       id: flux_diff
       run: |
