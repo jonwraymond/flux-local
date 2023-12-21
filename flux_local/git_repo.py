@@ -43,7 +43,7 @@ from typing import Any, Generator
 import git
 
 from . import kustomize
-from .exceptions import FluxException
+from .exceptions import FluxException, KustomizePathException
 from .manifest import (
     CRD_KIND,
     FLUXTOMIZE_DOMAIN,
@@ -219,6 +219,26 @@ class ResourceVisitor:
 
 
 @dataclass
+class DocumentVisitor:
+    """Invoked when a document is visited so the caller can intercept.
+
+    This is similar to a resource visitor, but it visits the unparsed documents
+    since they may not have explicit schemas in this project.
+    """
+
+    kinds: list[str]
+    """The resource kinds of documents to visit."""
+
+    func: Callable[[str, dict[str, Any]], None]
+    """Function called with the resource and optional content.
+
+    The function arguments are:
+      - parent: The namespaced name of the Fluxtomization or HelmRelease
+      - doc: The resource object (e.g. Pod, ConfigMap, HelmRelease, etc)
+    """
+
+
+@dataclass
 class MetadataSelector:
     """A filter for objects to select from the cluster."""
 
@@ -304,44 +324,24 @@ class ResourceSelector:
     cluster_policy: MetadataSelector = field(default_factory=MetadataSelector)
     """ClusterPolicy objects to return."""
 
-
-async def grep_fluxtomizations(
-    root: Path,
-    relative_path: Path,
-) -> list[Kustomization]:
-    """Find all flux Kustomizations in the specified path."""
-    try:
-        docs = (
-            await kustomize.grep(f"kind={CLUSTER_KUSTOMIZE_KIND}", root / relative_path)
-            .grep(GREP_SOURCE_REF_KIND)
-            .objects()
-        )
-    except FluxException as err:
-        raise FluxException(
-            f"Error building Fluxtomization in '{root}' "
-            f"path '{relative_path}': {err} - {ERROR_DETAIL_BAD_PATH}"
-        )
-    kustomizations = [
-        Kustomization.parse_doc(doc) for doc in filter(FLUXTOMIZE_DOMAIN_FILTER, docs)
-    ]
-    unique = {ks.namespaced_name for ks in kustomizations}
-    if len(unique) != len(kustomizations):
-        raise FluxException(
-            "Detected multiple Fluxtomizations with the same name indicating a multi-cluster setup. Please run with a more strict path"
-        )
-    return kustomizations
+    doc_visitor: DocumentVisitor | None = None
+    """Raw objects to visit."""
 
 
-def is_allowed_source(doc: Kustomization, sources: list[Source]) -> bool:
+def is_allowed_source(sources: list[Source]) -> Callable[[Kustomization], bool]:
     """Return true if this Kustomization is from an allowed source."""
-    if not sources:
-        return True
-    for source in sources:
-        if source.name == doc.source_name and (
-            source.namespace is None or source.namespace == doc.source_namespace
-        ):
+
+    def _filter(doc: Kustomization) -> bool:
+        if not sources:
             return True
-    return False
+        for source in sources:
+            if source.name == doc.source_name and (
+                source.namespace is None or source.namespace == doc.source_namespace
+            ):
+                return True
+        return False
+
+    return _filter
 
 
 def adjust_ks_path(doc: Kustomization, selector: PathSelector) -> Path | None:
@@ -368,54 +368,131 @@ def adjust_ks_path(doc: Kustomization, selector: PathSelector) -> Path | None:
         )
         return None
 
-    return Path(doc.path)
+    path = Path(doc.path)
+    if path.is_absolute():
+        return path.relative_to("/")
+    return path
 
 
-async def kustomization_traversal(selector: PathSelector) -> list[Kustomization]:
+class CachableBuilder:
+    """Wrappwr around flux_build that caches contents."""
+
+    def __init__(self) -> None:
+        """Initialize CachableBuilder."""
+        self._cache: dict[str, kustomize.Kustomize] = {}
+
+    async def build(
+        self, kustomization: Kustomization, path: Path
+    ) -> kustomize.Kustomize:
+        key = f"{kustomization.namespaced_name} @ {path}"
+        if cmd := self._cache.get(key):
+            return cmd
+        cmd = kustomize.flux_build(kustomization, path)
+        cmd = await cmd.stash()
+        self._cache[key] = cmd
+        return cmd
+
+
+async def visit_kustomization(
+    selector: PathSelector,
+    builder: CachableBuilder,
+    path: Path,
+    visit_ks: Kustomization | None,
+) -> list[Kustomization]:
+    """Visit a path and return a list of Kustomizations."""
+
+    _LOGGER.debug("Visiting path (%s) %s", selector.path, path)
+    label = visit_ks.namespaced_name if visit_ks else str(path)
+    with trace_context(f"Kustomization '{label}'"):
+        cmd: kustomize.Kustomize
+        if visit_ks is None:
+            cmd = kustomize.grep(f"kind={CLUSTER_KUSTOMIZE_KIND}", selector.root / path)
+        else:
+            cmd = await builder.build(visit_ks, selector.root / path)
+            cmd = cmd.grep(f"kind={CLUSTER_KUSTOMIZE_KIND}")
+        cmd = cmd.grep(GREP_SOURCE_REF_KIND)
+
+        try:
+            docs = await cmd.objects()
+        except KustomizePathException as err:
+            raise FluxException(err) from err
+        except FluxException as err:
+            if visit_ks is None:
+                raise FluxException(
+                    f"Error building Fluxtomization in '{selector.root}' "
+                    f"path '{path}': {ERROR_DETAIL_BAD_PATH} {err}"
+                ) from err
+            raise FluxException(
+                f"Error building Fluxtomization '{visit_ks.namespaced_name}' "
+                f"path '{path}': {ERROR_DETAIL_BAD_KS} {err}"
+            ) from err
+    kustomizations = list(
+        filter(
+            is_allowed_source(selector.sources or []),
+            [
+                Kustomization.parse_doc(doc)
+                for doc in filter(FLUXTOMIZE_DOMAIN_FILTER, docs)
+            ],
+        )
+    )
+    unique = {ks.namespaced_name for ks in kustomizations}
+    if len(unique) != len(kustomizations):
+        raise FluxException(
+            "Detected multiple Fluxtomizations with the same name indicating a multi-cluster setup. Please run with a more strict path"
+        )
+    return kustomizations
+
+
+async def kustomization_traversal(
+    selector: PathSelector, builder: CachableBuilder
+) -> list[Kustomization]:
     """Search for kustomizations in the specified path."""
 
-    kustomizations: list[Kustomization] = []
+    response_kustomizations: list[Kustomization] = []
     visited_paths: set[Path] = set()  # Relative paths within the cluster
     visited_ks: set[str] = set()
 
-    path_queue: queue.Queue[Path] = queue.Queue()
-    path_queue.put(selector.relative_path)
+    path_queue: queue.Queue[tuple[Path, Kustomization | None]] = queue.Queue()
+    path_queue.put((selector.relative_path, None))
     while not path_queue.empty():
-        path = path_queue.get()
-        _LOGGER.debug("Visiting path (%s) %s", selector.path, path)
-        with trace_context(f"Traversing Kustomization '{str(path)}'"):
-            docs = await grep_fluxtomizations(selector.root, path)
-            docs = [
-                doc for doc in docs if is_allowed_source(doc, selector.sources or [])
-            ]
+        # Fully empty the queue, running all tasks in parallel
+        tasks = []
+        while not path_queue.empty():
+            (path, visit_ks) = path_queue.get()
 
-        visited_paths |= set({path})
+            if path in visited_paths:
+                _LOGGER.debug("Already visited %s", path)
+                continue
+            visited_paths.add(path)
 
-        orig_len = len(docs)
-        docs = [doc for doc in docs if doc.namespaced_name not in visited_ks]
-        visited_ks |= set({doc.namespaced_name for doc in docs})
-        new_len = len(docs)
-        _LOGGER.debug("Found %s Kustomizations (%s unique)", orig_len, new_len)
+            tasks.append(visit_kustomization(selector, builder, path, visit_ks))
 
-        result_docs = []
-        for doc in docs:
+        # Find new kustomizations
+        kustomizations = []
+        for result in await asyncio.gather(*tasks):
+            for ks in result:
+                if ks.namespaced_name in visited_ks:
+                    continue
+                kustomizations.append(ks)
+                visited_ks.add(ks.namespaced_name)
+        _LOGGER.debug("Found %s new Kustomizations", len(kustomizations))
+
+        # Queue up new paths to visit to find more kustomizations
+        for ks in kustomizations:
             _LOGGER.debug(
                 "Kustomization '%s' sourceRef.kind '%s' of '%s'",
-                doc.name,
-                doc.source_kind,
-                doc.source_name,
+                ks.name,
+                ks.source_kind,
+                ks.source_name,
             )
-            if not (doc_path := adjust_ks_path(doc, selector)):
+            if not (ks_path := adjust_ks_path(ks, selector)):
                 continue
-            doc.path = str(doc_path)
-            if doc_path not in visited_paths:
-                path_queue.put(doc_path)
-            else:
-                _LOGGER.debug("Already visited %s", doc_path)
-            result_docs.append(doc)
-        kustomizations.extend(result_docs)
-    kustomizations.sort(key=lambda x: (x.namespace, x.name))
-    return kustomizations
+            ks.path = str(ks_path)
+            path_queue.put((ks_path, ks))
+            response_kustomizations.append(ks)
+
+    response_kustomizations.sort(key=lambda x: (x.namespace, x.name))
+    return response_kustomizations
 
 
 def node_name(ks: Kustomization) -> str:
@@ -430,24 +507,28 @@ def node_name(ks: Kustomization) -> str:
 async def build_kustomization(
     kustomization: Kustomization,
     cluster_path: Path,
-    root: Path,
-    kustomization_selector: MetadataSelector,
-    helm_release_selector: MetadataSelector,
-    helm_repo_selector: MetadataSelector,
-    cluster_policy_selector: MetadataSelector,
+    selector: ResourceSelector,
     kustomize_flags: list[str],
+    builder: CachableBuilder,
 ) -> tuple[Iterable[HelmRepository], Iterable[HelmRelease], Iterable[ClusterPolicy]]:
     """Build helm objects for the Kustomization."""
+
+    root: Path = selector.path.root
+    kustomization_selector: MetadataSelector = selector.kustomization
+    helm_repo_selector: MetadataSelector = selector.helm_repo
+    helm_release_selector: MetadataSelector = selector.helm_release
+    cluster_policy_selector: MetadataSelector = selector.cluster_policy
     if (
         not kustomization_selector.enabled
-        and not helm_release_selector.enabled
         and not helm_repo_selector.enabled
+        and not helm_release_selector.enabled
         and not cluster_policy_selector.enabled
+        and not selector.doc_visitor
     ):
         return ([], [], [])
 
-    with trace_context(f"Build Kustomization '{kustomization.namespaced_name}'"):
-        cmd = kustomize.build(root / kustomization.path, kustomize_flags)
+    with trace_context(f"Build '{kustomization.namespaced_name}'"):
+        cmd = await builder.build(kustomization, root / kustomization.path)
         skips = []
         if kustomization_selector.skip_crds:
             skips.append(CRD_KIND)
@@ -464,23 +545,37 @@ async def build_kustomization(
             ) from err
 
         if kustomization_selector.visitor:
-            if kustomization_selector.visitor:
-                await kustomization_selector.visitor.func(
-                    cluster_path,
-                    Path(kustomization.path),
-                    kustomization,
-                    cmd,
-                )
+            await kustomization_selector.visitor.func(
+                cluster_path,
+                Path(kustomization.path),
+                kustomization,
+                cmd,
+            )
 
-        if (
-            not helm_release_selector.enabled
-            and not helm_repo_selector.enabled
-            and not cluster_policy_selector.enabled
-        ):
+        kinds = []
+        if helm_repo_selector.enabled:
+            kinds.append(HELM_REPO_KIND)
+        if helm_release_selector.enabled:
+            kinds.append(HELM_RELEASE_KIND)
+        if cluster_policy_selector.enabled:
+            kinds.append(CLUSTER_POLICY_KIND)
+        if selector.doc_visitor:
+            kinds.extend(selector.doc_visitor.kinds)
+        if not kinds:
             return ([], [], [])
-        docs = await cmd.grep(
-            f"kind=^({HELM_REPO_KIND}|{HELM_RELEASE_KIND}|{CLUSTER_POLICY_KIND})$"
-        ).objects(target_namespace=kustomization.target_namespace)
+
+        regexp = f"kind=^({'|'.join(kinds)})$"
+        docs = await cmd.grep(regexp).objects(
+            target_namespace=kustomization.target_namespace
+        )
+        
+        if selector.doc_visitor:
+            doc_kinds = set(selector.doc_visitor.kinds)
+            for doc in docs:
+                if doc.get("kind") not in doc_kinds:
+                    continue
+                selector.doc_visitor.func(kustomization.namespaced_name, doc)
+
         return (
             filter(
                 helm_repo_selector.predicate,
@@ -529,8 +624,10 @@ async def build_manifest(
     if not selector.cluster.enabled:
         return Manifest(clusters=[])
 
-    with trace_context(f"Traversing Cluster '{str(selector.path.path)}'"):
-        results = await kustomization_traversal(selector.path)
+    builder = CachableBuilder()
+
+    with trace_context(f"Cluster '{str(selector.path.path)}'"):
+        results = await kustomization_traversal(selector.path, builder)
         clusters = [
             Cluster(
                 path=str(selector.path.relative_path),
@@ -552,12 +649,9 @@ async def build_manifest(
                     build_kustomization(
                         kustomization,
                         Path(cluster.path),
-                        selector.path.root,
-                        selector.kustomization,
-                        selector.helm_release,
-                        selector.helm_repo,
-                        selector.cluster_policy,
+                        selector,
                         options.kustomize_flags,
+                        builder,
                     )
                 )
             results = list(await asyncio.gather(*build_tasks))

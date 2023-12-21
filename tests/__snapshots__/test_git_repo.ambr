@@ -39,7 +39,6 @@
             'cluster_policies': list([
               dict({
                 'name': 'test-allow-policy',
-                'namespace': None,
               }),
             ]),
             'helm_releases': list([
@@ -74,21 +73,21 @@
             'helm_releases': list([
               dict({
                 'chart': dict({
-                  'name': 'weave-gitops',
-                  'repo_name': 'weave-charts',
-                  'repo_namespace': 'flux-system',
-                }),
-                'name': 'weave-gitops',
-                'namespace': 'flux-system',
-              }),
-              dict({
-                'chart': dict({
                   'name': 'metallb',
                   'repo_name': 'bitnami',
                   'repo_namespace': 'flux-system',
                 }),
                 'name': 'metallb',
                 'namespace': 'metallb',
+              }),
+              dict({
+                'chart': dict({
+                  'name': 'weave-gitops',
+                  'repo_name': 'weave-charts',
+                  'repo_namespace': 'flux-system',
+                }),
+                'name': 'weave-gitops',
+                'namespace': 'flux-system',
               }),
             ]),
             'helm_repos': list([
@@ -140,7 +139,6 @@
             'cluster_policies': list([
               dict({
                 'name': 'test-allow-policy',
-                'namespace': None,
               }),
             ]),
             'helm_releases': list([
@@ -226,7 +224,6 @@
             'cluster_policies': list([
               dict({
                 'name': 'test-allow-policy',
-                'namespace': None,
               }),
             ]),
             'helm_releases': list([
@@ -261,21 +258,21 @@
             'helm_releases': list([
               dict({
                 'chart': dict({
-                  'name': 'weave-gitops',
-                  'repo_name': 'weave-charts',
-                  'repo_namespace': 'flux-system',
-                }),
-                'name': 'weave-gitops',
-                'namespace': 'flux-system',
-              }),
-              dict({
-                'chart': dict({
                   'name': 'metallb',
                   'repo_name': 'bitnami',
                   'repo_namespace': 'flux-system',
                 }),
                 'name': 'metallb',
                 'namespace': 'metallb',
+              }),
+              dict({
+                'chart': dict({
+                  'name': 'weave-gitops',
+                  'repo_name': 'weave-charts',
+                  'repo_namespace': 'flux-system',
+                }),
+                'name': 'weave-gitops',
+                'namespace': 'flux-system',
               }),
             ]),
             'helm_repos': list([
@@ -352,7 +349,6 @@
             'cluster_policies': list([
               dict({
                 'name': 'test-allow-policy',
-                'namespace': None,
               }),
             ]),
             'helm_releases': list([
@@ -369,21 +365,21 @@
             'helm_releases': list([
               dict({
                 'chart': dict({
-                  'name': 'weave-gitops',
-                  'repo_name': 'weave-charts',
-                  'repo_namespace': 'flux-system',
-                }),
-                'name': 'weave-gitops',
-                'namespace': 'flux-system',
-              }),
-              dict({
-                'chart': dict({
                   'name': 'metallb',
                   'repo_name': 'bitnami',
                   'repo_namespace': 'flux-system',
                 }),
                 'name': 'metallb',
                 'namespace': 'metallb',
+              }),
+              dict({
+                'chart': dict({
+                  'name': 'weave-gitops',
+                  'repo_name': 'weave-charts',
+                  'repo_namespace': 'flux-system',
+                }),
+                'name': 'weave-gitops',
+                'namespace': 'flux-system',
               }),
             ]),
             'helm_repos': list([
@@ -438,7 +434,6 @@
             'cluster_policies': list([
               dict({
                 'name': 'test-allow-policy',
-                'namespace': None,
               }),
             ]),
             'helm_releases': list([
@@ -473,21 +468,21 @@
             'helm_releases': list([
               dict({
                 'chart': dict({
-                  'name': 'weave-gitops',
-                  'repo_name': 'weave-charts',
-                  'repo_namespace': 'flux-system',
-                }),
-                'name': 'weave-gitops',
-                'namespace': 'flux-system',
-              }),
-              dict({
-                'chart': dict({
                   'name': 'metallb',
                   'repo_name': 'bitnami',
                   'repo_namespace': 'flux-system',
                 }),
                 'name': 'metallb',
                 'namespace': 'metallb',
+              }),
+              dict({
+                'chart': dict({
+                  'name': 'weave-gitops',
+                  'repo_name': 'weave-charts',
+                  'repo_namespace': 'flux-system',
+                }),
+                'name': 'weave-gitops',
+                'namespace': 'flux-system',
               }),
             ]),
             'helm_repos': list([
@@ -526,79 +521,75 @@
 # ---
 # name: test_internal_commands[cluster2]
   dict({
-    "Traversing Cluster 'tests/testdata/cluster2'": dict({
-      "Build Kustomization 'flux-system/cluster'": dict({
+    "Cluster 'tests/testdata/cluster2'": dict({
+      "Build 'flux-system/cluster'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster2/flux (abs)',
-          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster2/flux/config (abs)',
-          'kustomize build tests/testdata/cluster2/flux/repositories (abs)',
-          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
-        ]),
-      }),
-      "Build Kustomization 'flux-system/cluster-apps'": dict({
-        'cmds': list([
-          'kustomize build tests/testdata/cluster2/apps (abs)',
-          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster2/apps/monitoring (abs)',
-          'kustomize build tests/testdata/cluster2/apps/networking (abs)',
-          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
-        ]),
-      }),
-      "Build Kustomization 'flux-system/cluster-apps-ingress-nginx'": dict({
-        'cmds': list([
-          'kustomize build tests/testdata/cluster2/apps/networking/ingress-nginx/app (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Build Kustomization 'flux-system/cluster-apps-ingress-nginx-certificates'": dict({
+      "Build 'flux-system/cluster-apps'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster2/apps/networking/ingress-nginx/certificates (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Build Kustomization 'flux-system/cluster-apps-kubernetes-dashboard'": dict({
+      "Build 'flux-system/cluster-apps-ingress-nginx'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster2/apps/monitoring/kubernetes-dashboard/app (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Traversing Kustomization 'tests/testdata/cluster2'": dict({
+      "Build 'flux-system/cluster-apps-ingress-nginx-certificates'": dict({
+        'cmds': list([
+          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
+          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
+        ]),
+      }),
+      "Build 'flux-system/cluster-apps-kubernetes-dashboard'": dict({
+        'cmds': list([
+          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
+          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
+        ]),
+      }),
+      "Kustomization 'flux-system/cluster'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster2/flux (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/cluster-apps'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster2/apps (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/cluster-apps-ingress-nginx'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster2/apps/networking/ingress-nginx/app (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/cluster-apps-ingress-nginx-certificates'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster2/apps/networking/ingress-nginx/certificates (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/cluster-apps-kubernetes-dashboard'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster2/apps/monitoring/kubernetes-dashboard/app (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'tests/testdata/cluster2'": dict({
         'cmds': list([
           '(tests/testdata/cluster2 (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster2/apps'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster2/apps (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster2/apps/monitoring/kubernetes-dashboard/app'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster2/apps/monitoring/kubernetes-dashboard/app (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster2/apps/networking/ingress-nginx/app'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster2/apps/networking/ingress-nginx/app (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster2/apps/networking/ingress-nginx/certificates'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster2/apps/networking/ingress-nginx/certificates (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster2/flux'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster2/flux (abs)) kustomize cfg grep kind=Kustomization .',
           "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
         ]),
       }),
@@ -607,36 +598,36 @@
 # ---
 # name: test_internal_commands[cluster3]
   dict({
-    "Traversing Cluster 'tests/testdata/cluster3'": dict({
-      "Build Kustomization 'flux-system/namespaces'": dict({
+    "Cluster 'tests/testdata/cluster3'": dict({
+      "Build 'flux-system/namespaces'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster3/namespaces/overlays/cluster3 (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Build Kustomization 'flux-system/tenants'": dict({
+      "Build 'flux-system/tenants'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster3/tenants/overlays/cluster3 (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Traversing Kustomization 'tests/testdata/cluster3'": dict({
+      "Kustomization 'flux-system/namespaces'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster3/namespaces/overlays/cluster3 (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/tenants'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster3/tenants/overlays/cluster3 (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'tests/testdata/cluster3'": dict({
         'cmds': list([
           '(tests/testdata/cluster3 (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster3/namespaces/overlays/cluster3'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster3/namespaces/overlays/cluster3 (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster3/tenants/overlays/cluster3'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster3/tenants/overlays/cluster3 (abs)) kustomize cfg grep kind=Kustomization .',
           "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
         ]),
       }),
@@ -645,52 +636,49 @@
 # ---
 # name: test_internal_commands[cluster4]
   dict({
-    "Traversing Cluster 'tests/testdata/cluster4'": dict({
-      "Build Kustomization 'flux-system/cluster'": dict({
+    "Cluster 'tests/testdata/cluster4'": dict({
+      "Build 'flux-system/cluster'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster4/flux (abs)',
-          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster4/flux/config (abs)',
-          'kustomize build tests/testdata/cluster4/flux/repositories (abs)',
-          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
-        ]),
-      }),
-      "Build Kustomization 'flux-system/cluster-apps'": dict({
-        'cmds': list([
-          'kustomize build tests/testdata/cluster4/apps (abs)',
-          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster4/apps/monitoring (abs)',
-          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
-        ]),
-      }),
-      "Build Kustomization 'flux-system/cluster-apps-kubernetes-dashboard'": dict({
-        'cmds': list([
-          'kustomize build tests/testdata/cluster4/apps/monitoring/kubernetes-dashboard (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Traversing Kustomization 'tests/testdata/cluster4'": dict({
+      "Build 'flux-system/cluster-apps'": dict({
+        'cmds': list([
+          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
+          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
+        ]),
+      }),
+      "Build 'flux-system/cluster-apps-kubernetes-dashboard'": dict({
+        'cmds': list([
+          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
+          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
+        ]),
+      }),
+      "Kustomization 'flux-system/cluster'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster4/flux (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/cluster-apps'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster4/apps (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/cluster-apps-kubernetes-dashboard'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster4/apps/monitoring/kubernetes-dashboard (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'tests/testdata/cluster4'": dict({
         'cmds': list([
           '(tests/testdata/cluster4 (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster4/apps'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster4/apps (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster4/apps/monitoring/kubernetes-dashboard'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster4/apps/monitoring/kubernetes-dashboard (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster4/flux'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster4/flux (abs)) kustomize cfg grep kind=Kustomization .',
           "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
         ]),
       }),
@@ -699,24 +687,23 @@
 # ---
 # name: test_internal_commands[cluster5]
   dict({
-    "Traversing Cluster 'tests/testdata/cluster5'": dict({
-      "Build Kustomization 'flux-system/flux-system'": dict({
+    "Cluster 'tests/testdata/cluster5'": dict({
+      "Build 'flux-system/flux-system'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster5/clusters/prod (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster5/clusters/prod/flux-system (abs)',
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Traversing Kustomization 'tests/testdata/cluster5'": dict({
+      "Kustomization 'flux-system/flux-system'": dict({
         'cmds': list([
-          '(tests/testdata/cluster5 (abs)) kustomize cfg grep kind=Kustomization .',
+          'flux build tests/testdata/cluster5/clusters/prod (abs)',
+          'kustomize cfg grep kind=Kustomization',
           "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
         ]),
       }),
-      "Traversing Kustomization 'tests/testdata/cluster5/clusters/prod'": dict({
+      "Kustomization 'tests/testdata/cluster5'": dict({
         'cmds': list([
-          '(tests/testdata/cluster5/clusters/prod (abs)) kustomize cfg grep kind=Kustomization .',
+          '(tests/testdata/cluster5 (abs)) kustomize cfg grep kind=Kustomization .',
           "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
         ]),
       }),
@@ -725,38 +712,36 @@
 # ---
 # name: test_internal_commands[cluster6]
   dict({
-    "Traversing Cluster 'tests/testdata/cluster6'": dict({
-      "Build Kustomization 'flux-system/apps'": dict({
+    "Cluster 'tests/testdata/cluster6'": dict({
+      "Build 'flux-system/apps'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster6/apps (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster6/apps/renovate (abs)',
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Build Kustomization 'flux-system/flux-system'": dict({
+      "Build 'flux-system/flux-system'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster6/cluster (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster6/cluster/flux-system (abs)',
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Traversing Kustomization 'tests/testdata/cluster6'": dict({
+      "Kustomization 'flux-system/apps'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster6/apps (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/flux-system'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster6/cluster (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'tests/testdata/cluster6'": dict({
         'cmds': list([
           '(tests/testdata/cluster6 (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster6/apps'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster6/apps (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster6/cluster'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster6/cluster (abs)) kustomize cfg grep kind=Kustomization .',
           "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
         ]),
       }),
@@ -765,52 +750,49 @@
 # ---
 # name: test_internal_commands[cluster7]
   dict({
-    "Traversing Cluster 'tests/testdata/cluster7'": dict({
-      "Build Kustomization 'flux-system/apps'": dict({
+    "Cluster 'tests/testdata/cluster7'": dict({
+      "Build 'flux-system/apps'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster7/flux/apps (abs)',
-          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster7/flux/apps/database (abs)',
-          'kustomize build tests/testdata/cluster7/flux/apps/database/postgresql (abs)',
-          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
-        ]),
-      }),
-      "Build Kustomization 'flux-system/charts'": dict({
-        'cmds': list([
-          'kustomize build tests/testdata/cluster7/flux/charts (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Build Kustomization 'flux-system/flux-system'": dict({
+      "Build 'flux-system/charts'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster7/clusters/home (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster7/clusters/home/flux-system (abs)',
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Traversing Kustomization 'tests/testdata/cluster7'": dict({
+      "Build 'flux-system/flux-system'": dict({
+        'cmds': list([
+          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
+          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
+        ]),
+      }),
+      "Kustomization 'flux-system/apps'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster7/flux/apps (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/charts'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster7/flux/charts (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/flux-system'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster7/clusters/home (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'tests/testdata/cluster7'": dict({
         'cmds': list([
           '(tests/testdata/cluster7 (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster7/clusters/home'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster7/clusters/home (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster7/flux/apps'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster7/flux/apps (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster7/flux/charts'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster7/flux/charts (abs)) kustomize cfg grep kind=Kustomization .',
           "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
         ]),
       }),
@@ -819,63 +801,62 @@
 # ---
 # name: test_internal_commands[cluster]
   dict({
-    "Traversing Cluster 'tests/testdata/cluster'": dict({
-      "Build Kustomization 'flux-system/apps'": dict({
+    "Cluster 'tests/testdata/cluster'": dict({
+      "Build 'flux-system/apps'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster/apps/prod (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Build Kustomization 'flux-system/flux-system'": dict({
+      "Build 'flux-system/flux-system'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster/clusters/prod (abs)',
-          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
-          'kustomize build tests/testdata/cluster/clusters/prod/flux-system (abs)',
-          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
-        ]),
-      }),
-      "Build Kustomization 'flux-system/infra-configs'": dict({
-        'cmds': list([
-          'kustomize build tests/testdata/cluster/infrastructure/configs (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Build Kustomization 'flux-system/infra-controllers'": dict({
+      "Build 'flux-system/infra-configs'": dict({
         'cmds': list([
-          'kustomize build tests/testdata/cluster/infrastructure/controllers (abs)',
           "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
           "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
         ]),
       }),
-      "Traversing Kustomization 'tests/testdata/cluster'": dict({
+      "Build 'flux-system/infra-controllers'": dict({
+        'cmds': list([
+          "kustomize cfg grep 'kind=^(CustomResourceDefinition|Secret)$' --invert-match",
+          "kustomize cfg grep 'kind=^(HelmRepository|HelmRelease|ClusterPolicy)$'",
+        ]),
+      }),
+      "Kustomization 'flux-system/apps'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster/apps/prod (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/flux-system'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster/clusters/prod (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/infra-configs'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster/infrastructure/configs (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'flux-system/infra-controllers'": dict({
+        'cmds': list([
+          'flux build tests/testdata/cluster/infrastructure/controllers (abs)',
+          'kustomize cfg grep kind=Kustomization',
+          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
+        ]),
+      }),
+      "Kustomization 'tests/testdata/cluster'": dict({
         'cmds': list([
           '(tests/testdata/cluster (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster/apps/prod'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster/apps/prod (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster/clusters/prod'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster/clusters/prod (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster/infrastructure/configs'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster/infrastructure/configs (abs)) kustomize cfg grep kind=Kustomization .',
-          "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
-        ]),
-      }),
-      "Traversing Kustomization 'tests/testdata/cluster/infrastructure/controllers'": dict({
-        'cmds': list([
-          '(tests/testdata/cluster/infrastructure/controllers (abs)) kustomize cfg grep kind=Kustomization .',
           "kustomize cfg grep 'spec.sourceRef.kind=GitRepository|OCIRepository'",
         ]),
       }),
@@ -933,7 +914,6 @@
             'cluster_policies': list([
               dict({
                 'name': 'test-allow-policy',
-                'namespace': None,
               }),
             ]),
             'helm_releases': list([
@@ -968,21 +948,21 @@
             'helm_releases': list([
               dict({
                 'chart': dict({
-                  'name': 'weave-gitops',
-                  'repo_name': 'weave-charts',
-                  'repo_namespace': 'flux-system',
-                }),
-                'name': 'weave-gitops',
-                'namespace': 'flux-system',
-              }),
-              dict({
-                'chart': dict({
                   'name': 'metallb',
                   'repo_name': 'bitnami',
                   'repo_namespace': 'flux-system',
                 }),
                 'name': 'metallb',
                 'namespace': 'metallb',
+              }),
+              dict({
+                'chart': dict({
+                  'name': 'weave-gitops',
+                  'repo_name': 'weave-charts',
+                  'repo_namespace': 'flux-system',
+                }),
+                'name': 'weave-gitops',
+                'namespace': 'flux-system',
               }),
             ]),
             'helm_repos': list([

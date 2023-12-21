@@ -20,7 +20,7 @@ RUN cd /usr/local/bin/ && \
 RUN kustomize version
 
 # renovate: datasource=github-releases depName=helm/helm
-ARG HELM_CLI_VERSION=v3.12.1
+ARG HELM_CLI_VERSION=v3.13.3
 RUN mkdir -p /src && \
     cd /src && \
     curl -OL https://get.helm.sh/helm-${HELM_CLI_VERSION}-linux-amd64.tar.gz && \
@@ -30,7 +30,7 @@ RUN mkdir -p /src && \
 RUN helm version
 
 # renovate: datasource=github-releases depName=kyverno/kyverno
-ARG KYVERNO_VERSION=v1.10.0
+ARG KYVERNO_VERSION=v1.11.1
 RUN mkdir -p /src && \
     cd /src && \
     curl -OL https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz && \
@@ -41,7 +41,7 @@ RUN mkdir -p /src && \
 RUN kyverno version
 
 # renovate: datasource=github-releases depName=fluxcd/flux2 extractVersion=^v(?<version>.+)$
-ARG FLUX_CLI_VERSION=2.1.2
+ARG FLUX_CLI_VERSION=2.2.1
 RUN mkdir -p /src && \
     cd /src && \
     curl -OL https://github.com/fluxcd/flux2/releases/download/v${FLUX_CLI_VERSION}/flux_${FLUX_CLI_VERSION}_linux_amd64.tar.gz && \
@@ -53,5 +53,6 @@ RUN flux version --client
 COPY . /src/
 WORKDIR /src/
 RUN pip3 install -r /src/requirements.txt
+RUN pip3 install -e /src/
 
 SHELL ["/bin/bash", "-c"]

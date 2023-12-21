@@ -13,10 +13,10 @@ from flux_local.git_repo import (
     build_manifest,
     ResourceSelector,
     ResourceVisitor,
-    kustomization_traversal,
     Source,
     PathSelector,
     is_allowed_source,
+    adjust_ks_path,
 )
 from flux_local.kustomize import Kustomize, Stash
 from flux_local.command import Task, run_piped
@@ -24,6 +24,7 @@ from flux_local.manifest import Kustomization
 from flux_local.context import trace
 
 TESTDATA = Path("tests/testdata/cluster")
+TESTDATA_FULL_PATH = Path.cwd() / TESTDATA
 
 
 async def test_build_manifest(snapshot: SnapshotAssertion) -> None:
@@ -147,78 +148,6 @@ async def test_helm_release_visitor(snapshot: SnapshotAssertion) -> None:
     assert visits == snapshot
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "kubernetes/flux/",
-        "./kubernetes/flux",
-        "kubernetes/flux",
-    ],
-)
-async def test_kustomization_traversal(path: str) -> None:
-    """Tests for finding Kustomizations."""
-
-    results: list[list[Kustomization]] = [
-        # First traversal
-        [
-            Kustomization(
-                name="flux-system",
-                namespace="flux-system",
-                path="./kubernetes/cluster",
-            ),
-        ],
-        # Second traversal
-        [
-            Kustomization(
-                name="cluster-apps",
-                namespace="flux-system",
-                path="./kubernetes/apps",
-            ),
-            Kustomization(
-                name="cluster",
-                namespace="flux-system",
-                path="./kubernetes/flux",
-            ),
-        ],
-        # Third traversal
-        [
-            Kustomization(
-                name="cluster-apps-rook-ceph",
-                namespace="flux-system",
-                path="./kubernetes/apps/rook-ceph/rook-ceph/app",
-            ),
-            Kustomization(
-                name="cluster-apps-volsync",
-                namespace="flux-system",
-                path="./kubernetes/apps/volsync/volsync/app",
-            ),
-        ],
-        [],
-        [],
-        # The returned kustomizations point to subdirectories that have
-        # already been searched so no need to search further.
-    ]
-    paths = []
-
-    async def grep(root: Path, p: Path) -> list[Kustomization]:
-        nonlocal paths, results
-        paths.append((str(root), str(p)))
-        return results.pop(0)
-
-    with patch("flux_local.git_repo.PathSelector.root", Path("/home/example")), patch(
-        "flux_local.git_repo.grep_fluxtomizations", grep
-    ):
-        kustomizations = await kustomization_traversal(PathSelector(path=Path(path)))
-    assert len(kustomizations) == 5
-    assert paths == [
-        ("/home/example", "kubernetes/flux"),
-        ("/home/example", "kubernetes/cluster"),
-        ("/home/example", "kubernetes/apps"),
-        ("/home/example", "kubernetes/apps/rook-ceph/rook-ceph/app"),
-        ("/home/example", "kubernetes/apps/volsync/volsync/app"),
-    ]
-
-
 def test_source() -> None:
     """Test parsing a source from a string."""
     source = Source.from_str("cluster=./k8s")
@@ -251,7 +180,7 @@ def test_is_allowed_source() -> None:
         path="./kubernetes/apps/volsync/volsync/app",
         source_name="flux-system",
     )
-    assert is_allowed_source(ks, [Source.from_str("flux-system")])
+    assert is_allowed_source([Source.from_str("flux-system")])(ks)
 
 
 def test_is_not_allowed_source() -> None:
@@ -262,7 +191,7 @@ def test_is_not_allowed_source() -> None:
         path="./kubernetes/apps/volsync/volsync/app",
         source_name="flux-system",
     )
-    assert not is_allowed_source(ks, [Source.from_str("flux-system-other")])
+    assert not is_allowed_source([Source.from_str("flux-system-other")])(ks)
 
 
 def test_is_allowed_source_namespace_optional() -> None:
@@ -274,9 +203,9 @@ def test_is_allowed_source_namespace_optional() -> None:
         source_name="flux-system",
         source_namespace="flux-system2",
     )
-    assert is_allowed_source(ks, [Source.from_str("flux-system")])
-    assert is_allowed_source(ks, [Source.from_str("flux-system2/flux-system")])
-    assert not is_allowed_source(ks, [Source.from_str("flux-system3/flux-system")])
+    assert is_allowed_source([Source.from_str("flux-system")])(ks)
+    assert is_allowed_source([Source.from_str("flux-system2/flux-system")])(ks)
+    assert not is_allowed_source([Source.from_str("flux-system3/flux-system")])(ks)
 
 
 @pytest.mark.parametrize(
@@ -332,3 +261,24 @@ async def test_internal_commands(
         await build_manifest(selector=selector)
 
     assert context_cmds == snapshot
+
+
+@pytest.mark.parametrize(
+    ("path", "expected_path"),
+    [
+        ("kubernetes/apps/example", "kubernetes/apps/example"),
+        ("./kubernetes/apps/example", "kubernetes/apps/example"),
+        ("/kubernetes/apps/example", "kubernetes/apps/example"),
+        ("", str(TESTDATA)),
+    ],
+)
+def test_adjust_ks_path(path: str, expected_path: str) -> None:
+    """Test adjusting the Kustomization path relative directory."""
+    ks = Kustomization(
+        name="ks",
+        namespace="flux-system",
+        path=path,
+        source_name="flux-system",
+    )
+    selector = PathSelector(TESTDATA_FULL_PATH)
+    assert adjust_ks_path(ks, selector) == Path(expected_path)
