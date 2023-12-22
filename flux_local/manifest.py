@@ -39,6 +39,7 @@ HELM_RELEASE_DOMAIN = "helm.toolkit.fluxcd.io"
 CLUSTER_POLICY_DOMAIN = "kyverno.io"
 CRD_KIND = "CustomResourceDefinition"
 SECRET_KIND = "Secret"
+DEFAULT_NAMESPACE = "flux-system"
 
 REPO_TYPE_DEFAULT = "default"
 REPO_TYPE_OCI = "oci"
@@ -57,7 +58,7 @@ class BaseManifest(BaseModel):
 
     _COMPACT_EXCLUDE_FIELDS: dict[str, Any] = {}
 
-    def compact_dict(self, exclude: dict[str, Any] | None = None, include: dict[str, Any] | None = None) -> dict[str, Any]:
+    def compact_dict(self, exclude: dict[str, Any] | None = None) -> dict[str, Any]:
         """Return a compact dictionary representation of the object.
 
         This is similar to `dict()` but with a specific implementation for serializing
@@ -89,7 +90,7 @@ class HelmChart(BaseManifest):
     """The version of the chart."""
 
     repo_name: str
-    """The name of the HelmRepository."""
+    """The short name of the HelmRepository."""
 
     repo_namespace: str
     """The namespace of the HelmRepository."""
@@ -121,9 +122,14 @@ class HelmChart(BaseManifest):
         )
 
     @property
+    def repo_full_name(self) -> str:
+        """Identifier for the HelmRepository."""
+        return f"{self.repo_namespace}-{self.repo_name}"
+
+    @property
     def chart_name(self) -> str:
         """Identifier for the HelmChart."""
-        return f"{self.repo_namespace}-{self.repo_name}/{self.name}"
+        return f"{self.repo_full_name}/{self.name}"
 
     _COMPACT_EXCLUDE_FIELDS = {"version": True}
 
@@ -142,6 +148,9 @@ class HelmRelease(BaseManifest):
 
     values: Optional[dict[str, Any]] = None
     """The values to install in the chart."""
+
+    images: list[str] = Field(default_factory=list)
+    """The list of images referenced in the HelmRelease."""
 
     @classmethod
     def parse_doc(cls, doc: dict[str, Any]) -> "HelmRelease":
@@ -170,6 +179,11 @@ class HelmRelease(BaseManifest):
     def repo_name(self) -> str:
         """Identifier for the HelmRepository identified in the HelmChart."""
         return f"{self.chart.repo_namespace}-{self.chart.repo_name}"
+
+    @property
+    def namespaced_name(self) -> str:
+        """Return the namespace and name concatenated as an id."""
+        return f"{self.namespace}/{self.name}"
 
     _COMPACT_EXCLUDE_FIELDS = {
         "values": True,
@@ -329,9 +343,9 @@ class Kustomization(BaseManifest):
         return f"{self.path}"
 
     @property
-    def namespaced_name(self, sep: str = "/") -> str:
+    def namespaced_name(self) -> str:
         """Return the namespace and name concatenated as an id."""
-        return f"{self.namespace}{sep}{self.name}"
+        return f"{self.namespace}/{self.name}"
 
     _COMPACT_EXCLUDE_FIELDS = {
         "helm_releases": {
